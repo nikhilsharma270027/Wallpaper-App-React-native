@@ -1,22 +1,15 @@
-import { ImageCart } from "@/components/ImageCart";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { useWallpapers, Wallpaper } from "@/hooks/useWallpapers";
 import { Image, Text, View, StyleSheet } from "react-native";
-import { Link } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { FlatList } from "react-native-gesture-handler";
-import { ThemedView } from "@/components/ThemedView";
-import { useState } from "react";
-import { Downloadpicture } from "@/components/BottomSheet";
+import { SplitView } from "@/components/SplitView";
 
 export default function explore() {
   const wallpapers = useWallpapers();
-  const [selectedWallpaper, setSelectedWallpaper] = useState<null | Wallpaper>(null);
+  // const [selectedWallpaper, setSelectedWallpaper] = useState<null | Wallpaper>(null);
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <ParallaxScrollView
-        headerBackgroundColor={{ dark: "black", light: "white" }}
-        headerImage={
+      <ParallaxScrollView headerBackgroundColor={{ dark: "black", light: "white" }} headerImage={
           <Image
             style={{ flex: 1 }}
             source={{
@@ -25,38 +18,13 @@ export default function explore() {
           />
         }
       >
-        <View style={styles.container}>
-          <ThemedView style={styles.innerContainer}>
-            <FlatList
-              data={wallpapers.filter((_, index) => index % 2 == 0 )}
-              renderItem={({ item }) => (
-                <View style={styles.imageContainer}>
-                  <ImageCart wallpaper={item} onPress={()=> {
-                      setSelectedWallpaper(item)
-                  }}/>
-                </View>
-              )}
-              keyExtractor={(item) => item.name}
-            />
-          </ThemedView>
+       
+        <SplitView wallpapers={wallpapers} />
+          
 
-          <ThemedView style={styles.innerContainer}>
-            <FlatList
-              data={wallpapers.filter((_, index) => index % 2 == 1 )}
-              renderItem={({ item }) => (
-                <View style={styles.imageContainer}>
-                  <ImageCart wallpaper={item} onPress={()=> {
-                      setSelectedWallpaper(item)
-                  }}/>
-                </View>
-              )}
-              keyExtractor={(item) => item.name}
-            />
-          </ThemedView>
-        </View>
         {/* <Text>Expolre page</Text> */}
       </ParallaxScrollView>
-      {selectedWallpaper && <Downloadpicture wallpaper={selectedWallpaper} onClose={()=> setSelectedWallpaper(null)} />}
+      
     </SafeAreaView>
   );
 }
@@ -71,7 +39,7 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   imageContainer: {
-    padding: 10,
+    paddingVertical: 10,
   },
 });
 
