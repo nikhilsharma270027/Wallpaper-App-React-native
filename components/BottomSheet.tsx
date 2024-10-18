@@ -1,18 +1,13 @@
 import React, { useCallback, useMemo, useRef } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  Button,
-  useColorScheme,
-  Pressable,
-} from "react-native";
+import { View, Image, StyleSheet, Button, useColorScheme, Pressable, Text } from 'react-native';
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { Wallpaper } from "@/hooks/useWallpapers";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Colors } from "@/constants/Colors";
 import { ThemedText } from "./ThemedText";
+import * as MediaLibrary from 'expo-media-library';
+import * as FileSystem from 'expo-file-system';
+import { ThemedView } from "./ThemedView";
 
 export const Downloadpicture = ({
   onClose,
@@ -34,7 +29,7 @@ export const Downloadpicture = ({
   return (
     <BottomSheet
       onClose={onClose}
-      snapPoints={["94%"]}
+      snapPoints={["95%"]}
       ref={bottomSheetRef}
       onChange={handleSheetChanges}
       enablePanDownToClose={true}
@@ -42,47 +37,59 @@ export const Downloadpicture = ({
       handleStyle={{ display: "none" }}
     >
       <BottomSheetView style={styles.contentContainer}>
-        <Image style={styles.image} source={{ uri: wallpaper.url }} />
-
-        <View style={styles.topbar}>
-          <Ionicons
-            name={"close"}
-            size={24}
-            // color={theme == 'light' ? Colors.light.icon : Colors.dark.icon}
-            color="white"
-          />
-
-          <View style={styles.topbarinner}>
-          <Ionicons
-            name={"share"}
-            size={24}
-            // color={theme == 'light' ? Colors.light.icon : Colors.dark.icon}
-            color="white"
-          />
-          <Ionicons
-            name={"heart"}
-            size={24}
-            // color={theme == 'light' ? Colors.light.icon : Colors.dark.icon}
-            color="white"
-            style={{paddingLeft: 4}}
-          />
+        <ThemedView style={{flex: 1}}>
+          <Image style={styles.image} source={{uri: wallpaper.url}} />
+          <View style={styles.topbar}>
+            <Ionicons
+                onPress={onClose}
+                name={'close'}
+                size={24}
+                color={theme === 'light' ? Colors.light.icon : Colors.dark.text}
+            />
+            <View style={styles.topbarInner}>
+              <Ionicons
+                  name={'heart'}
+                  size={24}
+                  color={theme === 'light' ? Colors.light.icon : Colors.dark.text}
+              />
+              <Ionicons
+                  name={'share'}
+                  size={24}
+                  color={theme === 'light' ? Colors.light.icon : Colors.dark.text}
+                  style={{paddingLeft: 4}}
+              />
+            </View>
           </View>
-        </View>
-
-        <View style={styles.textContainer}>
-          <ThemedText style={styles.text}>{wallpaper.name}</ThemedText>
-        </View>
-
-
-        <DownloadButton />
+          <ThemedView style={styles.textContainer}>
+            <ThemedText style={styles.text}>{wallpaper.name}</ThemedText>
+          </ThemedView>
+          <DownloadButton url={wallpaper.url} />
+        </ThemedView>
       </BottomSheetView>
     </BottomSheet>
   );
 };
 
-function DownloadButton() {
+function DownloadButton({ url }:{ url: string;}) {
   const theme = useColorScheme() ?? 'light';
-  return <Pressable  style={{
+
+  return <Pressable onPress={async() => {
+    let date = new Date().getTime();
+    let fileUri = FileSystem.documentDirectory + `${date}.jpg`;
+    
+    try {
+        await FileSystem.downloadAsync(url, fileUri)
+        const response = await MediaLibrary.requestPermissionsAsync(true)
+        if (response.granted) {
+          MediaLibrary.createAssetAsync(fileUri)
+          alert("Image saved")
+        } else {
+          console.error("permission not granted")
+        }
+    } catch (err) {
+        console.log("FS Err: ", err)
+    }
+  }} style={{
     backgroundColor: "black",
     padding: 10,
     marginHorizontal: 40,
@@ -113,7 +120,6 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
-    // alignItems: 'center',
   },
   image: {
     height: "70%",
@@ -125,12 +131,11 @@ const styles = StyleSheet.create({
     display: "flex",
     justifyContent: "space-between",
     flexDirection: "row",
-    width: "100%",
+    width: "100%"
   },
-  topbarinner: {
+  topbarInner: {
     display: "flex",
     flexDirection: "row",
-
   },
   textContainer: {
     width: "100%"
@@ -139,7 +144,6 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     textAlign: "center",
     fontSize: 30,
-    fontWeight: "600",
-    color: "black"
+    fontWeight: "600"
   }
 });
